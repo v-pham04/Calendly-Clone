@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { getUserByUsername } from "@/actions/users";
+import { db } from "@/lib/prisma";
 import EventCard from "@/components/event-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -20,9 +22,20 @@ export async function generateMetadata({ params }) {
 
 export default async function UserProfilePage({ params }) {
   const user = await getUserByUsername(params.username);
+  const { userId } = auth();
 
   if (!user) {
     notFound();
+  }
+
+  let isOwner = false;
+  if (userId) {
+    const loggedInUser = await db.user.findUnique({
+      where: { clerkUserId: userId },
+      select: { username: true },
+    });
+
+    isOwner = loggedInUser?.username === params.username;
   }
 
   return (
@@ -49,6 +62,7 @@ export default async function UserProfilePage({ params }) {
               event={event}
               username={params.username}
               isPublic
+              canManage={isOwner}
             />
           ))}
         </div>

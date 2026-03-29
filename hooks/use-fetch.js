@@ -1,24 +1,27 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 const useFetch = (cb) => {
   const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState(null);
 
-  const fn = async (...args) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await cb(...args);
-      setData(response);
+  const fn = useCallback(
+    async (...args) => {
+      setLoading(true);
       setError(null);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      try {
+        const response = await cb(...args);
+        setData(response);
+        setError(null);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cb],
+  );
 
   return { data, loading, error, fn };
 };

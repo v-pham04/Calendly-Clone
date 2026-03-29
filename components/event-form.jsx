@@ -16,7 +16,13 @@ import { createEvent } from "@/actions/events";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 
-const EventForm = ({ onSubmitForm, initialData = {} }) => {
+const EventForm = ({
+  onSubmitForm,
+  initialData = {},
+  formId,
+  hideSubmitButton = false,
+  onLoadingChange,
+}) => {
   const router = useRouter();
   const {
     register,
@@ -35,6 +41,10 @@ const EventForm = ({ onSubmitForm, initialData = {} }) => {
 
   const { loading, error, fn: fnCreateEvent } = useFetch(createEvent);
 
+  React.useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
+
   const onSubmit = async (data) => {
     await fnCreateEvent(data);
     if (!loading && !error) onSubmitForm();
@@ -43,6 +53,7 @@ const EventForm = ({ onSubmitForm, initialData = {} }) => {
 
   return (
     <form
+      id={formId}
       className="px-6 flex flex-col gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
@@ -132,9 +143,11 @@ const EventForm = ({ onSubmitForm, initialData = {} }) => {
 
       {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
 
-      <Button type="submit" disabled={loading}>
-        {loading ? "Submitting..." : "Create Event"}
-      </Button>
+      {!hideSubmitButton && (
+        <Button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Create Event"}
+        </Button>
+      )}
     </form>
   );
 };

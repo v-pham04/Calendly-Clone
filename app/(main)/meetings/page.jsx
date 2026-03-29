@@ -10,22 +10,42 @@ export const metadata = {
 
 export default async function MeetingsPage() {
   return (
-    <Tabs defaultValue="upcoming">
-      <TabsList className="mb-4">
-        <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-        <TabsTrigger value="past">Past</TabsTrigger>
-      </TabsList>
-      <TabsContent value="upcoming">
-        <Suspense fallback={<div>Loading upcoming meetings...</div>}>
-          <UpcomingMeetings />
-        </Suspense>
-      </TabsContent>
-      <TabsContent value="past">
-        <Suspense fallback={<div>Loading past meetings...</div>}>
-          <PastMeetings />
-        </Suspense>
-      </TabsContent>
-    </Tabs>
+    <div className="space-y-5">
+      <div className="rounded-xl border border-slate-200 bg-white/85 p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h3 className="text-lg font-semibold text-slate-900">
+            Meetings Timeline
+          </h3>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+            Upcoming + Past
+          </span>
+        </div>
+        <p className="text-sm text-slate-600 mt-1">
+          Use Upcoming to join or cancel scheduled calls. Use Past to review
+          completed sessions.
+        </p>
+      </div>
+
+      <Tabs
+        defaultValue="upcoming"
+        className="rounded-xl border border-slate-200 bg-white/85 p-4 shadow-sm"
+      >
+        <TabsList className="mb-4">
+          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+          <TabsTrigger value="past">Past</TabsTrigger>
+        </TabsList>
+        <TabsContent value="upcoming">
+          <Suspense fallback={<div>Loading upcoming meetings...</div>}>
+            <UpcomingMeetings />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="past">
+          <Suspense fallback={<div>Loading past meetings...</div>}>
+            <PastMeetings />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 

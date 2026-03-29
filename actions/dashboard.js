@@ -1,21 +1,10 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { requireDbUser } from "@/lib/require-db-user";
 
 export async function getLatestUpdates() {
-  const { userId } = auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   const now = new Date();
 

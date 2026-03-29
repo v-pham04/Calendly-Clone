@@ -42,7 +42,7 @@ export default function AvailabilityForm({ initialData }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {[
         "monday",
         "tuesday",
@@ -55,7 +55,10 @@ export default function AvailabilityForm({ initialData }) {
         const isAvailable = watch(`${day}.isAvailable`);
 
         return (
-          <div key={day} className="flex items-center space-x-4 mb-4">
+          <div
+            key={day}
+            className="flex flex-wrap items-center gap-2 md:gap-3 py-2 border-b border-slate-100 last:border-b-0"
+          >
             <Controller
               name={`${day}.isAvailable`}
               control={control}
@@ -72,11 +75,11 @@ export default function AvailabilityForm({ initialData }) {
                 />
               )}
             />
-            <span className="w-24">
+            <span className="w-24 font-medium text-slate-800">
               {day.charAt(0).toUpperCase() + day.slice(1)}
             </span>
             {isAvailable && (
-              <>
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
                 <Controller
                   name={`${day}.startTime`}
                   control={control}
@@ -95,7 +98,7 @@ export default function AvailabilityForm({ initialData }) {
                     </Select>
                   )}
                 />
-                <span>to</span>
+                <span className="text-slate-500 text-sm">to</span>
                 <Controller
                   name={`${day}.endTime`}
                   control={control}
@@ -115,25 +118,27 @@ export default function AvailabilityForm({ initialData }) {
                   )}
                 />
                 {errors[day]?.endTime && (
-                  <span className="text-red-500 text-sm ml-2">
+                  <span className="text-red-500 text-sm w-full md:w-auto md:ml-2">
                     {errors[day].endTime.message}
                   </span>
                 )}
-              </>
+              </div>
             )}
           </div>
         );
       })}
 
-      <div className="flex items-center space-x-4">
-        <span className="w-48">Minimum gap before booking (minutes):</span>
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 pt-2">
+        <span className="md:w-64 text-slate-800 font-medium text-sm">
+          Minimum gap before booking (minutes)
+        </span>
 
         <Input
           type="number"
           {...register("timeGap", {
             valueAsNumber: true,
           })}
-          className="w-32"
+          className="w-full md:w-28"
         />
 
         {errors.timeGap && (

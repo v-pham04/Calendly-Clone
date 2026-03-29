@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { requireDbUser } from "@/lib/require-db-user";
 import {
   startOfDay,
   addDays,
@@ -12,14 +12,10 @@ import {
 } from "date-fns";
 
 export async function getUserAvailability() {
-  const { userId } = auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+  const authUser = await requireDbUser();
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { id: authUser.id },
     include: {
       availability: {
         include: { days: true },
@@ -62,14 +58,10 @@ export async function getUserAvailability() {
 }
 
 export async function updateAvailability(data) {
-  const { userId } = auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+  const authUser = await requireDbUser();
 
   const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+    where: { id: authUser.id },
     include: { availability: true },
   });
 

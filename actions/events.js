@@ -1,25 +1,13 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { requireDbUser } from "@/lib/require-db-user";
 import { eventSchema } from "@/app/lib/validators";
 
 export async function createEvent(data) {
-  const { userId } = auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
+  const user = await requireDbUser();
 
   const validatedData = eventSchema.parse(data);
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
 
   const event = await db.event.create({
     data: {
@@ -32,18 +20,7 @@ export async function createEvent(data) {
 }
 
 export async function getUserEvents() {
-  const { userId } = auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   const events = await db.event.findMany({
     where: { userId: user.id },
@@ -59,18 +36,7 @@ export async function getUserEvents() {
 }
 
 export async function deleteEvent(eventId) {
-  const { userId } = auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   const event = await db.event.findUnique({
     where: { id: eventId },

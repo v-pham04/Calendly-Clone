@@ -11,18 +11,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import useFetch from "@/hooks/use-fetch";
-import { Link, Trash2 } from "lucide-react";
+import { ExternalLink, Link, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function EventCard({ event, username, isPublic = false }) {
+export default function EventCard({
+  event,
+  username,
+  isPublic = false,
+  canManage = false,
+}) {
   const [isCopied, setIsCopied] = useState(false);
   const router = useRouter();
+  const eventSummary =
+    event.description?.split(".")?.[0]?.trim() || "No description provided yet";
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(
-        `${window?.location.origin}/${username}/${event.id}`
+        `${window?.location.origin}/${username}/${event.id}`,
       );
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
@@ -34,48 +41,79 @@ export default function EventCard({ event, username, isPublic = false }) {
   const { loading, fn: fnDeleteEvent } = useFetch(deleteEvent);
 
   const handleDelete = async () => {
-    if (window?.confirm("Are you sure you want to delete this event?")) {
-      await fnDeleteEvent(event.id);
-      router.refresh();
+    const confirmed = window?.confirm(
+      `Delete \"${event.title}\"? This action cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
+    const verifyText = window?.prompt(
+      "Type DELETE to confirm permanent deletion.",
+    );
+
+    if (verifyText?.trim().toUpperCase() !== "DELETE") {
+      window?.alert("Deletion cancelled. Confirmation text did not match.");
+      return;
     }
+
+    await fnDeleteEvent(event.id);
+    router.refresh();
   };
 
-  const handleCardClick = (e) => {
-    if (e.target.tagName !== "BUTTON" && e.target.tagName !== "SVG") {
-      window?.open(
-        `${window?.location.origin}/${username}/${event.id}`,
-        "_blank"
-      );
-    }
+  const handleCopyClick = async () => {
+    await handleCopy();
+  };
+
+  const handleOpen = () => {
+    window?.open(
+      `${window?.location.origin}/${username}/${event.id}`,
+      "_blank",
+    );
   };
 
   return (
-    <Card
-      className="flex flex-col justify-between cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <CardHeader>
-        <CardTitle className="text-2xl">{event.title}</CardTitle>
-        <CardDescription className="flex justify-between">
-          <span>
-            {event.duration} mins | {event.isPrivate ? "Private" : "Public"}
+    <Card className="flex flex-col justify-between border-slate-200 bg-white/95 shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle className="text-xl md:text-2xl leading-tight">
+            {event.title}
+          </CardTitle>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full border bg-slate-50 text-slate-700 border-slate-200 whitespace-nowrap">
+            {event.duration} mins
           </span>
-          <span>{event._count.bookings} Bookings</span>
+        </div>
+        <CardDescription className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+          <span className="rounded-full px-2.5 py-1 border border-blue-100 bg-blue-50 text-blue-700 font-medium">
+            {event.isPrivate ? "Private" : "Public"}
+          </span>
+          <span className="rounded-full px-2.5 py-1 border border-violet-100 bg-violet-50 text-violet-700 font-medium">
+            {event._count.bookings} bookings
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>{event.description.substring(0, event.description.indexOf("."))}.</p>
+        <p className="text-sm text-slate-600">{eventSummary}.</p>
       </CardContent>
-      {!isPublic && (
-        <CardFooter className="flex gap-2">
+      <CardFooter className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleOpen}
+          className="flex items-center"
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Open
+        </Button>
+        {!isPublic && (
           <Button
             variant="outline"
-            onClick={handleCopy}
+            onClick={handleCopyClick}
             className="flex items-center"
           >
             <Link className="mr-2 h-4 w-4" />
             {isCopied ? "Copied!" : "Copy Link"}
           </Button>
+        )}
+        {(canManage || !isPublic) && (
           <Button
             variant="destructive"
             onClick={handleDelete}
@@ -84,8 +122,8 @@ export default function EventCard({ event, username, isPublic = false }) {
             <Trash2 className="mr-2 h-4 w-4" />
             {loading ? "Deleting..." : "Delete"}
           </Button>
-        </CardFooter>
-      )}
+        )}
+      </CardFooter>
     </Card>
   );
 }

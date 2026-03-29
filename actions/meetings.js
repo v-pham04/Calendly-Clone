@@ -1,22 +1,12 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
+import { requireDbUser } from "@/lib/require-db-user";
 import { google } from "googleapis";
 
 export async function getUserMeetings(type = "upcoming") {
-  const { userId } = auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   const now = new Date();
 
@@ -46,18 +36,7 @@ export async function getUserMeetings(type = "upcoming") {
 }
 
 export async function cancelMeeting(meetingId) {
-  const { userId } = auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   const meeting = await db.booking.findUnique({
     where: { id: meetingId },

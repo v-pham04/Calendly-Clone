@@ -49,7 +49,7 @@ export default function BookingForm({ event, availability }) {
     }
 
     const startTime = new Date(
-      `${format(selectedDate, "yyyy-MM-dd")}T${selectedTime}`
+      `${format(selectedDate, "yyyy-MM-dd")}T${selectedTime}`,
     );
     const endTime = new Date(startTime.getTime() + event.duration * 60000);
 
@@ -65,11 +65,31 @@ export default function BookingForm({ event, availability }) {
     await fnCreateBooking(bookingData);
   };
 
-  const availableDays = availability.map((day) => new Date(day.date));
+  //const availableDays = availability.map((day) => new Date(day.date));
 
+  //---------------CODE MODIFIED HERE---------------
+  // 1. Convert your availability array into a simple Set of date strings for fast lookup
+  // We only include dates that have slots
+  const availableDatesSet = new Set(
+    availability
+      .filter((item) => item.slots && item.slots.length > 0)
+      .map((item) => item.date),
+  );
+
+  // 2. This function checks if a specific calendar day should be blue
+  const isDayAvailable = (date) => {
+    // We must format the calendar's date to match '2026-03-30'
+    const dateString = format(date, "yyyy-MM-dd");
+    return availableDatesSet.has(dateString);
+  };
+
+  // 3. Define the modifiers
+  const modifiers = {
+    available: isDayAvailable,
+  };
   const timeSlots = selectedDate
     ? availability.find(
-        (day) => day.date === format(selectedDate, "yyyy-MM-dd")
+        (day) => day.date === format(selectedDate, "yyyy-MM-dd"),
       )?.slots || []
     : [];
 
@@ -106,7 +126,14 @@ export default function BookingForm({ event, availability }) {
               setSelectedTime(null); // Reset selected time when date changes
             }}
             disabled={[{ before: new Date() }]}
-            modifiers={{ available: availableDays }}
+            modifiers={{
+              available: (date) => {
+                const dateStr = format(date, "yyyy-MM-dd");
+                return availability.some(
+                  (item) => item.date === dateStr && item.slots.length > 0,
+                );
+              },
+            }}
             modifiersStyles={{
               available: {
                 background: "lightblue",
