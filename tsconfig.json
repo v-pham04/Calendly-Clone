@@ -33,8 +33,9 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "app/[username]/[eventId]/_components/booking-form.jsx"  ],
+  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "clerk-nextjs"
   ]
 }
